@@ -1,0 +1,12 @@
+{
+  "dashboard": {
+    "uid": "shopnserve",
+    "title": "Shop-n-Serve Overview",
+    "panels": [
+      { "type": "graph", "title": "Request Rate", "targets":[{"expr":"rate(request_count[1m])"}] },
+      { "type": "graph", "title": "Queue Depth", "targets":[{"expr":"aws_sqs_approximate_number_of_messages{queue_name=\\"orders-queue\\"}"}] },
+      { "type": "graph", "title": "DB Latency", "targets":[{"expr":"histogram_quantile(0.95, sum(rate(request_latency_seconds_bucket[5m])) by (le))"}] },
+      { "type": "graph", "title": "Lambda Errors", "targets":[{"expr":"increase(aws_lambda_errors[5m])"}] }
+    ]
+  }
+}

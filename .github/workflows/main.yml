@@ -1,0 +1,5 @@
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+  workflow_dispatch:   # allows manual trigger from GitHub UI

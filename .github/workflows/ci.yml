@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api
+    services:
+      localstack:
+        image: localstack/localstack:3
+        ports:
+          - 4566:4566
+        options: >-
+          --health-cmd "exit 0"
+          --health-interval 1s
+          --health-retries 10
+          --health-start-period 0s
+          --health-timeout 5s
+    env:
+      AWS_REGION: eu-west-1
+      AWS_DEFAULT_REGION: eu-west-1  # <--- ADD THIS LINE
+      AWS_ACCESS_KEY_ID: dummy
+      AWS_SECRET_ACCESS_KEY: dummy
+      SQS_QUEUE_URL: http://localhost:4566/000000000000/orders-queue
+      AWS_ENDPOINT_URL: http://localhost:4566
+      DB_HOST: localhost
+      DB_USER: admin
+      DB_PASS: secret
+
+
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Poetry
+        run: pip install poetry
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Install AWS CLI and awslocal
+        run: pip install awscli awscli-local
+
+
+      - name: Install netcat
+        run: apt-get update && apt-get install -y netcat
+
+      - name: Wait for LocalStack to be ready
+        run: |
+          for i in {1..20}; do
+            nc -z localhost 4566 && echo "LocalStack is up!" && break
+            echo "Waiting for LocalStack..."
+            sleep 3
+          done
+
+
+      - name: Create SQS queue
+        run: awslocal sqs create-queue --queue-name orders-queue
+
+      - name: Run tests
+        run: poetry run pytest
+        env:
+          AWS_REGION: eu-west-1
+          SQS_QUEUE_URL: http://localhost:4566/000000000000/orders-queue
+          AWS_ENDPOINT_URL: http://localhost:4566

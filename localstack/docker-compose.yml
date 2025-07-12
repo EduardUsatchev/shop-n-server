@@ -1,0 +1,18 @@
+version: "3.8"
+
+services:
+  localstack:
+    image: localstack/localstack:latest
+    container_name: localstack
+    ports:
+      - "4566:4566"            # Main gateway (all services edge)
+      - "4571:4571"            # (optional) old SQS endpoint
+    environment:
+      - SERVICES=s3,sqs,ec2,iam,sts,rds,secretsmanager,lambda
+      - DEBUG=1
+      - DATA_DIR=/tmp/localstack/data
+      - DEFAULT_REGION=eu-west-1
+      - HOST_TMP_FOLDER=${TMPDIR:-/tmp}/localstack
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"

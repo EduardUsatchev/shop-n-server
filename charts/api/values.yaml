@@ -1,0 +1,11 @@
+replicaCount: 2
+image:
+  repository: shopnserve/your-username
+  tag: latest
+ingress:
+  enabled: true
+  host: shopnserve.nip.io
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /metrics
+    prometheus.io/port: "5000"

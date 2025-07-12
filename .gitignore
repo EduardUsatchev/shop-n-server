@@ -1,0 +1,87 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Poetry and pip
+*.egg-info/
+.poetry/
+.poetry-cache/
+.env
+.venv/
+venv/
+env/
+poetry.lock
+
+# VSCode and PyCharm
+.vscode/
+.idea/
+
+# macOS and system
+.DS_Store
+Thumbs.db
+
+# Test and coverage
+*.log
+*.out
+*.test
+.cache/
+.tox/
+.coverage
+coverage.xml
+htmlcov/
+
+# Terraform
+infra/terraform/.terraform/
+infra/terraform/terraform.tfstate
+infra/terraform/terraform.tfstate.*
+*.tfstate
+*.tfstate.*
+
+# Docker
+**/docker-compose.override.yml
+**/.env
+**/.env.*
+
+# LocalStack (just in case)
+localstack/.localstack/
+localstack/tmp/
+localstack/data/
+localstack/logs/
+
+# Helm/K8s
+charts/**/charts/
+charts/**/tmp/
+charts/**/.helmignore
+
+# Build artifacts
+dist/
+build/
+*.bak
+*.swp
+
+# Node/npm (if added for frontend)
+node_modules/
+npm-debug.log
+
+# Generated shell scripts (if they are re-gen’ed)
+*.generated.sh
+
+# Personal overrides/secrets (add your own here if needed)
+secrets.env
+.envrc
+
+# Ignore Grafana session/cache files but NOT dashboards
+grafana/grafana.db
+grafana/data/
+
+# Ignore all secrets or credentials
+*.pem
+*.key
+*.crt
+
+# Miscellaneous
+*.pid
+*.lock
+
+# Don’t ignore Dockerfiles, Chart.yaml, or actual source/config files!

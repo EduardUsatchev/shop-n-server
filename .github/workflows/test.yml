@@ -1,0 +1,9 @@
+name: test
+on:
+  workflow_dispatch:
+
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Hello from CD!"
