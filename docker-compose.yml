@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  localstack:
+    image: localstack/localstack:latest
+    container_name: localstack
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=sqs
+      - EDGE_PORT=4566
+      - DEFAULT_REGION=eu-west-1
+      - HOSTNAME=localstack
+    networks:
+      - localnet
+
+  api:
+    build: .
+    container_name: shopnserve-api
+    ports:
+      - "5000:5000"
+    environment:
+      - AWS_REGION=eu-west-1
+      - AWS_ENDPOINT_URL=http://localstack:4566
+      - SQS_QUEUE_URL=http://localstack:4566/000000000000/orders-queue
+      - DB_USER=root
+      - DB_PASS=secret
+      - DB_HOST=host.docker.internal
+      - DB_NAME=shopnserve
+      - SERVER_VERSION=dev
+    depends_on:
+      - localstack
+    networks:
+      - localnet
+    # command: poetry run flask run --host=0.0.0.0 --port=5000
+
+networks:
+  localnet:
+    driver: bridge

@@ -85,3 +85,4 @@ grafana/data/
 *.lock
 
 # Don’t ignore Dockerfiles, Chart.yaml, or actual source/config files!
+.env

@@ -236,3 +236,23 @@ DB_PASS=secret
 **You can copy-paste this as your new README.md.**  
 Want to merge in a “Quickstart” section or more details on Grafana/monitoring? Just ask!
 ```
+# Shop-n-Serve
+
+## System Architecture
+
+![Shop-n-Serve Architecture](docs/architecture.png)
+
+This diagram shows the end-to-end flow for the Shop-n-Serve system:
+
+- **API Client:** Sends orders to the Flask API.
+- **API Service:** Receives requests, writes to SQS, exposes Prometheus metrics.
+- **SQS:** Decouples API and Worker.
+- **Worker:** Reads from SQS, writes to MySQL.
+- **MySQL:** Stores order data.
+- **Prometheus & Grafana:** Collect and visualize metrics.
+- **CI/CD:** Automated build/test/deploy.
+- **Infra as Code:** Managed by Terraform (AWS) and Helm (K8s).
+
+**Arrows** are labeled with protocols (HTTP, SQS, SQL, Metrics, etc).
+
+---
