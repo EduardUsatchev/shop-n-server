@@ -8,4 +8,3 @@ resource "aws_instance" "this" {
     Name = "shopnserve-ec2-${count.index}"
   }
 }
-
