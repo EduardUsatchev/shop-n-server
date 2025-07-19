@@ -1,0 +1,20 @@
+{
+  "annotations": { "list": [] },
+  "panels": [
+    {
+      "datasource": "Prometheus",
+      "type": "graph",
+      "title": "Orders Received",
+      "targets": [
+        {
+          "expr": "sum(increase(orders_received_total[1m]))",
+          "legendFormat": "Orders per minute"
+        }
+      ],
+      "id": 1
+    }
+  ],
+  "schemaVersion": 30,
+  "title": "ShopnServe API Metrics",
+  "version": 1
+}

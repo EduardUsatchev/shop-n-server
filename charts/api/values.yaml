@@ -9,3 +9,26 @@ ingress:
     prometheus.io/scrape: "true"
     prometheus.io/path: /metrics
     prometheus.io/port: "5000"
+env:
+  SQS_URL: http://localstack:4566/000000000000/orders-queue
+  SQS_QUEUE_URL: http://localstack:4566/000000000000/orders-queue
+initContainers:
+  - name: init-localstack-sqs
+    image: localstack/localstack:latest
+    command:
+      - /bin/sh
+      - -c
+      - |
+        pip install awscli-local && \
+        (awslocal sqs get-queue-url --queue-name orders-queue --region us-east-1 || \
+         awslocal sqs create-queue --queue-name orders-queue --region us-east-1) || true
+
+    env:
+      - name: AWS_ACCESS_KEY_ID
+        value: test
+      - name: AWS_SECRET_ACCESS_KEY
+        value: test
+      - name: AWS_DEFAULT_REGION
+        value: us-east-1
+
+

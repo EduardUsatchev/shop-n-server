@@ -1,7 +1,11 @@
 import os
 
 class Config:
-    """Config object for environment-driven settings."""
+    AWS_REGION = os.environ.get("AWS_REGION")
+    AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID", "test")
+    AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY", "test")
+    SQS_URL = os.environ.get("SQS_QUEUE_URL") or os.environ.get("SQS_URL")
+
 
     @property
     def AWS_REGION(self):

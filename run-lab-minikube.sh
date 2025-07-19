@@ -21,26 +21,37 @@ docker build -t $WORKER_NAME:local ./worker
 echo ">>> Starting Minikube..."
 minikube start
 
-# ---- 3. Deploy LocalStack ----
-echo ">>> Installing LocalStack (Helm)..."
-helm repo add localstack-charts https://localstack.github.io/helm-charts
+# ---- 3. Deploy LocalStack (Helm) ----
+echo ">>> Installing LocalStack (Helm) with values.yaml ..."
+helm repo add localstack-charts https://localstack.github.io/helm-charts || true
 helm repo update
+
+cat <<EOF > localstack-values.yaml
+startServices: "s3,sqs,rds,iam,ec2"
+service:
+  type: NodePort
+EOF
+
+helm uninstall $LOCALSTACK_HELM_NAME || true
+
 helm install $LOCALSTACK_HELM_NAME localstack-charts/localstack \
-  --set startServices="s3,sqs,rds,iam,ec2" \
-  --set service.type=NodePort --wait
+  -f localstack-values.yaml --wait
 
 # ---- 4. Deploy API and Worker (Helm) ----
 echo ">>> Installing API and Worker (Helm)..."
-# Replace values as needed for your chart structure
-helm upgrade --install $API_NAME ./charts/api \
-  --set image.repository=$API_NAME \
+helm upgrade --install shopnserve-api ./charts/api \
+  --set image.repository=shopnserve-api \
   --set image.tag=local \
   --set env.AWS_REGION=us-east-1 \
+  --set env.AWS_ACCESS_KEY_ID=test \
+  --set env.AWS_SECRET_ACCESS_KEY=test \
+  --set env.SQS_QUEUE_URL=http://localstack:4566/000000000000/orders-queue \
+  --set env.SQS_URL=http://localstack:4566/000000000000/orders-queue \
   --set env.DB_HOST=localhost \
   --set env.DB_USER=localuser \
   --set env.DB_PASS=localpass
 
-# Optional: If you have a dedicated chart for worker
+
 if [ -d "./charts/worker" ]; then
   helm upgrade --install $WORKER_NAME ./charts/worker \
     --set image.repository=$WORKER_NAME \
@@ -51,14 +62,29 @@ if [ -d "./charts/worker" ]; then
     --set env.DB_PASS=localpass
 fi
 
-# ---- 5. Wait for Pods to be Ready ----
-echo ">>> Waiting for API and Worker pods to be ready..."
+# ---- 5. Wait for Deployments to be Ready ----
+echo ">>> Waiting for API and Worker deployments to be ready..."
 kubectl wait --for=condition=available deployment/$API_NAME --timeout=120s
 if kubectl get deployment/$WORKER_NAME >/dev/null 2>&1; then
   kubectl wait --for=condition=available deployment/$WORKER_NAME --timeout=120s
 fi
 
-# ---- 6. Port-forward API ----
+# ---- 6. Wait for Service and Port-forward API ----
+echo ">>> Waiting for $API_NAME service to be created..."
+for i in {1..30}; do
+  if kubectl get svc $API_NAME >/dev/null 2>&1; then
+    echo "Service $API_NAME found."
+    break
+  fi
+  echo "Waiting for service $API_NAME (try $i/30)..."
+  sleep 2
+done
+
+if ! kubectl get svc $API_NAME >/dev/null 2>&1; then
+  echo ">>> ❌ ERROR: Service $API_NAME not found. Check your Helm chart!"
+  exit 1
+fi
+
 echo ">>> Port-forwarding API service to localhost:$API_PORT ..."
 kubectl port-forward svc/$API_NAME $API_PORT:$API_PORT &
 PF_PID=$!
@@ -85,14 +111,14 @@ check_api "http://localhost:$API_PORT/metrics" || RESULT=1
 # Optional: Post a sample order, if such an endpoint exists
 if curl -s -o /dev/null -w "%{http_code}" -X POST "http://localhost:$API_PORT/orders" \
   -H "Content-Type: application/json" \
-  -d '{"id": "testorder", "item": "coffee"}' | grep -q 200; then
+  -d '{"id": "testorder", "item": "coffee"}' | grep -E '200|201|202' > /dev/null; then
   echo "POST /orders ... OK"
 else
   echo "POST /orders ... SKIP or FAILED"
 fi
 
 # ---- 8. Cleanup Port-Forward ----
-kill $PF_PID
+kill $PF_PID 2>/dev/null || true
 
 # ---- 9. Summary ----
 if [ "$RESULT" -eq 0 ]; then

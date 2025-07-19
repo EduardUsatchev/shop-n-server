@@ -1,0 +1,20 @@
+# monitoring/prometheus/prometheus-values.yaml
+alertmanager:
+  enabled: false
+pushgateway:
+  enabled: false
+kubeStateMetrics:
+  enabled: true
+nodeExporter:
+  enabled: true
+
+server:
+  global:
+    scrape_interval: 3s
+    scrape_timeout: 3s
+  extraScrapeConfigs:
+    - job_name: 'shopnserve-api'
+      static_configs:
+        - targets: ['shopnserve-api.monitoring.svc.cluster.local:5000']
+  ingress:
+    enabled: false

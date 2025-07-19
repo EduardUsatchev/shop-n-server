@@ -72,8 +72,8 @@ secrets.env
 .envrc
 
 # Ignore Grafana session/cache files but NOT dashboards
-grafana/grafana.db
-grafana/data/
+monitoring/grafana/grafana.db
+monitoring/grafana/data/
 
 # Ignore all secrets or credentials
 *.pem

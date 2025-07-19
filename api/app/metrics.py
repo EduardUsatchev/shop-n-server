@@ -12,6 +12,7 @@ def register_metrics(app):
 
     @app.after_request
     def after(response):
+        print(f"Request path is: '{request.path}'")
         REQUEST_COUNT.labels(method=request.method, endpoint=request.path).inc()
         if hasattr(request, "_start_time"):
             duration = time.time() - request._start_time
